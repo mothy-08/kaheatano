@@ -62,7 +62,7 @@ export default function FoodList() {
   };
 
   return (
-    <div className="ml-4 flex h-[400px] w-sm flex-col gap-2 overflow-auto pr-4">
+    <div className="ml-4 flex h-[400px] w-xs flex-col gap-2 overflow-auto pr-4 md:w-sm">
       <Button
         variant={foods.length < 5 ? "ghost" : "default"}
         onClick={() => toast.success(`You got: ${getRandomFood()}`)}
