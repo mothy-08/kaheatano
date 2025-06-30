@@ -17,6 +17,8 @@ function toTitleCase(str: string): string {
 
 export default function FoodList() {
   const [foods, setFoods] = useState<string[]>([]);
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -38,19 +40,18 @@ export default function FoodList() {
     setFoods(updated);
   };
 
-  const getRandomFood = () => {
+  function getRandom(): [string, number] {
     const maxIndex = foods.length;
     const randomIndex = Math.floor(Math.random() * maxIndex);
 
-    return foods[randomIndex];
-  };
+    return [foods[randomIndex], randomIndex];
+  }
 
   useEffect(() => {
     localStorage.setItem("foods", JSON.stringify(foods));
   }, [foods]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
-    console.log("Form submitted");
     e.preventDefault();
 
     const food = inputRef.current?.value;
@@ -61,14 +62,32 @@ export default function FoodList() {
     inputRef.current!.value = "";
   };
 
+  const isValid = foods.length < 5;
+
+  let alreadyPicked = new Set<number>();
+
   return (
-    <div className="ml-4 flex h-[400px] w-xs flex-col gap-2 overflow-auto pr-4 md:w-sm">
+    <div className="flex h-[400px] w-xs flex-col gap-2 overflow-auto px-4 md:w-sm">
       <Button
-        variant={foods.length < 5 ? "ghost" : "default"}
-        onClick={() => toast.success(`You got: ${getRandomFood()}`)}
-        disabled={foods.length < 5}
+        variant={isValid ? "ghost" : "default"}
+        onClick={() => {
+          if (alreadyPicked.size === foods.length) {
+            alreadyPicked.clear();
+          }
+
+          let picked: string;
+          let index: number;
+
+          do {
+            [picked, index] = getRandom();
+          } while (alreadyPicked.has(index));
+
+          alreadyPicked.add(index);
+          toast.success(`You got: ${picked}`);
+        }}
+        disabled={isValid}
       >
-        {foods.length < 5 ? "Add at least five foods!" : "Surprise me!"}
+        {isValid ? "Add at least five foods!" : "Surprise me!"}
       </Button>
 
       {/*  NOTE: Change this! For now, we use input to add to the list */}
@@ -91,31 +110,59 @@ export default function FoodList() {
       </form>
 
       <ul className="flex w-full flex-col items-stretch">
-        {foods.map((f, i) => (
-          <li className="flex items-center justify-between" key={i}>
-            <span className="max-w-[30ch] truncate">{f}</span>
+        {foods.map((f, i) => {
+          const handleSave = () => {
+            const updated = [...foods];
+            updated[i] = editValue.trim() === "" ? f : editValue.trim();
+            setFoods(updated);
+            setEditIndex(null);
+          };
 
-            <div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="-mr-1 text-zinc-400"
-                aria-label="Edit Food"
-              >
-                <FiEdit />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-red-400"
-                onClick={() => deleteFood(i)}
-                aria-label="Delete Food"
-              >
-                <FiTrash />
-              </Button>
-            </div>
-          </li>
-        ))}
+          return (
+            <li className="flex items-center justify-between" key={i}>
+              {editIndex === i ? (
+                <Input
+                  className="max-w-[30ch]"
+                  name="edit-food-name"
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => {
+                    setEditValue(e.target.value);
+                  }}
+                  onBlur={handleSave}
+                  onKeyDown={(e) => e.key === "Enter" && handleSave()}
+                  autoFocus
+                />
+              ) : (
+                <span className="max-w-[30ch] truncate">{f}</span>
+              )}
+
+              <div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="-mr-1 text-zinc-400"
+                  aria-label="Edit Food"
+                  onClick={() => {
+                    setEditIndex(i);
+                    setEditValue(f);
+                  }}
+                >
+                  <FiEdit />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-400"
+                  onClick={() => deleteFood(i)}
+                  aria-label="Delete Food"
+                >
+                  <FiTrash />
+                </Button>
+              </div>
+            </li>
+          );
+        })}
       </ul>
       <Toaster position="top-center" richColors />
     </div>
