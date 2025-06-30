@@ -64,7 +64,7 @@ export default function FoodList() {
 
   const isValid = foods.length < 5;
 
-  let alreadyPicked = new Set<number>();
+  const alreadyPicked = new Set<number>();
 
   return (
     <div className="flex h-[400px] w-xs flex-col gap-2 overflow-auto px-4 md:w-sm">
