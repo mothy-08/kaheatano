@@ -40,6 +40,13 @@ export default function FoodList() {
     setFoods(updated);
   };
 
+  const saveFood = (food: string, index: number) => {
+    const updated = [...foods];
+    updated[index] = editValue.trim() === "" ? food : editValue.trim();
+    setFoods(updated);
+    setEditIndex(null);
+  };
+
   function getRandom(): [string, number] {
     const maxIndex = foods.length;
     const randomIndex = Math.floor(Math.random() * maxIndex);
@@ -95,12 +102,13 @@ export default function FoodList() {
         className="flex w-full items-center gap-2"
       >
         <Input
+          className="max-w-[32ch]"
           name="food-input"
           ref={inputRef}
           type="text"
           placeholder="Add food here..."
-          minLength={4}
-          maxLength={40}
+          minLength={3}
+          maxLength={60}
           required
         />
         <Button aria-label="Add Food" variant="outline">
@@ -109,59 +117,50 @@ export default function FoodList() {
       </form>
 
       <ul className="flex w-full flex-col items-stretch">
-        {foods.map((f, i) => {
-          const handleSave = () => {
-            const updated = [...foods];
-            updated[i] = editValue.trim() === "" ? f : editValue.trim();
-            setFoods(updated);
-            setEditIndex(null);
-          };
+        {foods.map((f, i) => (
+          <li className="flex items-center justify-between gap-2" key={i}>
+            {editIndex === i ? (
+              <Input
+                className="max-w-[32ch]"
+                name="edit-food-name"
+                type="text"
+                value={editValue}
+                onChange={(e) => {
+                  setEditValue(e.target.value);
+                }}
+                onBlur={() => saveFood(f, i)}
+                onKeyDown={(e) => e.key === "Enter" && saveFood(f, i)}
+                autoFocus
+              />
+            ) : (
+              <span className="max-w-[30ch] truncate">{f}</span>
+            )}
 
-          return (
-            <li className="flex items-center justify-between" key={i}>
-              {editIndex === i ? (
-                <Input
-                  className="max-w-[30ch]"
-                  name="edit-food-name"
-                  type="text"
-                  value={editValue}
-                  onChange={(e) => {
-                    setEditValue(e.target.value);
-                  }}
-                  onBlur={handleSave}
-                  onKeyDown={(e) => e.key === "Enter" && handleSave()}
-                  autoFocus
-                />
-              ) : (
-                <span className="max-w-[30ch] truncate">{f}</span>
-              )}
-
-              <div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="-mr-1 text-zinc-400"
-                  aria-label="Edit Food"
-                  onClick={() => {
-                    setEditIndex(i);
-                    setEditValue(f);
-                  }}
-                >
-                  <FiEdit />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-red-400"
-                  onClick={() => deleteFood(i)}
-                  aria-label="Delete Food"
-                >
-                  <FiTrash />
-                </Button>
-              </div>
-            </li>
-          );
-        })}
+            <div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="-mr-1 text-zinc-400"
+                aria-label="Edit Food"
+                onClick={() => {
+                  setEditIndex(i);
+                  setEditValue(f);
+                }}
+              >
+                <FiEdit />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-red-400"
+                onClick={() => deleteFood(i)}
+                aria-label="Delete Food"
+              >
+                <FiTrash />
+              </Button>
+            </div>
+          </li>
+        ))}
       </ul>
       <Toaster position="top-center" richColors />
     </div>
