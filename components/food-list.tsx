@@ -90,7 +90,6 @@ export default function FoodList() {
         {isValid ? "Add at least five foods!" : "Surprise me!"}
       </Button>
 
-      {/*  NOTE: Change this! For now, we use input to add to the list */}
       <form
         onSubmit={handleFormSubmit}
         className="flex w-full items-center gap-2"
